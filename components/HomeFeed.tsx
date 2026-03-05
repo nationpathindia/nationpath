@@ -64,7 +64,7 @@ export default function HomeFeed({ initialArticles }: Props) {
                 )}
 
                <Link
-  href={`/${item.isEditorial ? "editorial" : "article"}/${item.slug}`}
+  href={`/${(item as any).isEditorial ? "editorial" : "article"}/${item.slug}`}
 >
                   <h2 className="text-3xl lg:text-4xl font-bold mt-4 leading-snug group-hover:text-blue-700 transition">
                     {item.title}
