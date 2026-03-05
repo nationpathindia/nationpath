@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 
 export default function AdminCategories() {
-  const [categories, setCategories] = useState([]);
+const [categories, setCategories] = useState<any[]>([]);
   const [form, setForm] = useState({
     name: "",
     description: "",
