@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* Serif headlines */
+h1, h2, h3 {
+  font-family: var(--font-heading);
+}
+
+/* Thin professional borders */
+.section-border {
+  border-top: 1px solid #e5e7eb;
+}
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+.animate-marquee {
+  display: inline-block;
+  animation: marquee 25s linear infinite;
+}
+:root {
+  --brand-navy: #0f172a;        /* deep navy */
+  --brand-navy-light: #1e3a8a;  /* hover navy */
+}
+footer ul li a {
+  transition: 0.2s ease;
+}
+
+footer ul li a:hover {
+  color: white;
+}
+body {
+  background-color: #ffffff;
+  background-image: url('/texture.png'); /* your uploaded texture */
+  background-size: cover;
+  background-repeat: repeat;
+  background-blend-mode: multiply;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(255,255,255,0.96);
+  pointer-events: none;
+  z-index: -1;
+}
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeInUp 0.8s ease-out both;
+}
+
+
+@keyframes marquee {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-marquee {
+  display: inline-block;
+  animation: marquee 25s linear infinite;
+}

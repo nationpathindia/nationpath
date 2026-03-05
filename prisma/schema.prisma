@@ -1,0 +1,408 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+//////////////////////////////////////////////////////
+// ENUMS
+//////////////////////////////////////////////////////
+
+enum Role {
+  admin
+  editor
+  reporter
+  advertiser
+  user
+}
+
+enum PostStatus {
+  pending
+  approved
+  rejected
+  draft
+  archived
+}
+
+//////////////////////////////////////////////////////
+// AD PLACEMENT
+//////////////////////////////////////////////////////
+
+enum AdPlacement {
+
+  homepage_top
+  homepage_after_hero
+  homepage_mid
+  homepage_after_list
+  homepage_sidebar_top
+  homepage_sidebar_bottom
+  homepage_bottom
+
+  article_top
+  article_after_hero
+  article_after_paragraph
+  article_mid
+  article_bottom
+
+  category_top
+  category_after_3_posts
+  category_sidebar
+  category_bottom
+}
+
+enum AdType {
+  image
+  adsense
+}
+
+//////////////////////////////////////////////////////
+// CATEGORY
+//////////////////////////////////////////////////////
+
+model Category {
+
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  slug        String   @unique
+  description String?
+
+  status      String   @default("active")
+  priority    Int      @default(0)
+
+  seoTitle       String?
+  seoDescription String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime? @updatedAt
+
+  articles    Article[]
+
+  @@index([status])
+  @@index([priority])
+
+  @@map("Category")
+}
+
+//////////////////////////////////////////////////////
+// ARTICLE
+//////////////////////////////////////////////////////
+
+model Article {
+
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+
+  title     String
+  slug      String @unique
+
+  content   String
+  excerpt   String?
+
+  images    String[]
+  videoUrl  String?
+
+  //////////////////////////////////////////////////////
+  // FLAGS
+  //////////////////////////////////////////////////////
+
+  breaking         Boolean @default(false)
+  flash            Boolean @default(false)  // NEW FLASH NEWS FLAG
+  featured         Boolean @default(false)
+  isEditorial      Boolean @default(false)
+  isAstrology      Boolean @default(false)
+  isDeleted        Boolean @default(false)
+  isEditorsPick    Boolean @default(false)
+  isLive           Boolean @default(false) // FUTURE LIVE COVERAGE
+
+  homepagePriority Int @default(0)
+
+  breakingPriority Int @default(0) // PRIORITY FOR BREAKING BAR
+  flashPriority    Int @default(0) // PRIORITY FOR FLASH BAR
+
+  //////////////////////////////////////////////////////
+  // HOROSCOPE
+  //////////////////////////////////////////////////////
+
+  zodiacSign     String?
+  horoscopeDate  DateTime?
+
+  //////////////////////////////////////////////////////
+  // STATUS
+  //////////////////////////////////////////////////////
+
+  status       PostStatus @default(pending)
+  publishedAt  DateTime?
+
+  //////////////////////////////////////////////////////
+  // ENGAGEMENT
+  //////////////////////////////////////////////////////
+
+  views         Int @default(0)
+  likes         Int @default(0)
+  shares        Int @default(0)
+
+  insightful    Int @default(0)
+  important     Int @default(0)
+  surprising    Int @default(0)
+  concerning    Int @default(0)
+
+  //////////////////////////////////////////////////////
+  // TRENDING SYSTEM
+  //////////////////////////////////////////////////////
+
+  trendingScore Int      @default(0)
+  lastViewAt    DateTime?
+
+  //////////////////////////////////////////////////////
+  // TAGS
+  //////////////////////////////////////////////////////
+
+  tags String[]
+
+  //////////////////////////////////////////////////////
+  // SEO
+  //////////////////////////////////////////////////////
+
+  readingTime       Int?
+  metaTitle         String?
+  metaDescription   String?
+  metaKeywords      String?
+  canonicalUrl      String?
+  ogImage           String?
+  structuredData    String?
+
+  //////////////////////////////////////////////////////
+  // TIMESTAMPS
+  //////////////////////////////////////////////////////
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+
+  //////////////////////////////////////////////////////
+  // RELATIONS
+  //////////////////////////////////////////////////////
+
+  categoryId String?   @db.ObjectId
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  authorId String? @db.ObjectId
+  author   User?   @relation(fields: [authorId], references: [id])
+
+  comments Comment[]
+
+  //////////////////////////////////////////////////////
+  // INDEXES
+  //////////////////////////////////////////////////////
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([publishedAt])
+  @@index([views])
+  @@index([likes])
+  @@index([trendingScore])
+  @@index([lastViewAt])
+  @@index([breaking])
+  @@index([flash])
+  @@index([featured])
+  @@index([isEditorsPick])
+  @@index([homepagePriority])
+  @@index([isEditorial])
+  @@index([isAstrology])
+  @@index([isDeleted])
+  @@index([tags])
+
+  @@map("Article")
+}
+
+//////////////////////////////////////////////////////
+// COMMENT
+//////////////////////////////////////////////////////
+
+model Comment {
+
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  content   String
+
+  userId    String? @db.ObjectId
+  user      User?   @relation(fields: [userId], references: [id])
+
+  articleId String  @db.ObjectId
+  article   Article @relation(fields: [articleId], references: [id])
+
+  isDeleted Boolean @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([articleId])
+  @@index([createdAt])
+
+  @@map("Comment")
+}
+
+//////////////////////////////////////////////////////
+// USER
+//////////////////////////////////////////////////////
+
+model User {
+
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+
+  name      String?
+  email     String @unique
+  password  String
+
+  role      Role @default(user)
+  isActive  Boolean @default(true)
+  avatar    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+
+  articles  Article[]
+  comments  Comment[]
+  activity  ActivityLog[]
+
+  sentMessages     ChatMessage[] @relation("MessageSender")
+  receivedMessages ChatMessage[] @relation("MessageReceiver")
+
+  @@index([role])
+  @@index([isActive])
+
+  @@map("User")
+}
+
+//////////////////////////////////////////////////////
+// CHAT SYSTEM
+//////////////////////////////////////////////////////
+
+model ChatMessage {
+
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  senderId   String? @db.ObjectId
+  sender     User?   @relation("MessageSender", fields:[senderId], references:[id])
+
+  receiverId String? @db.ObjectId
+  receiver   User?   @relation("MessageReceiver", fields:[receiverId], references:[id])
+
+  message    String
+
+  isRead     Boolean  @default(false)
+
+  createdAt  DateTime @default(now())
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([createdAt])
+
+  @@map("ChatMessage")
+}
+
+//////////////////////////////////////////////////////
+// AD SYSTEM
+//////////////////////////////////////////////////////
+
+model Ad {
+
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+
+  title       String
+  placement   AdPlacement
+  type        AdType
+
+  imageUrl    String?
+  link        String?
+  adsenseCode String?
+
+  priority    Int     @default(1)
+  status      String  @default("active")
+
+  startDate   DateTime?
+  endDate     DateTime?
+
+  totalBudget Float?
+  cpc         Float?
+  maxClicks   Int?
+
+  views       Int @default(0)
+  clicks      Int @default(0)
+  completed   Boolean @default(false)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime? @updatedAt
+
+  @@index([placement])
+  @@index([status])
+  @@index([priority])
+
+  @@map("Ad")
+}
+
+//////////////////////////////////////////////////////
+// NEWSLETTER
+//////////////////////////////////////////////////////
+
+model NewsletterSubscriber {
+
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  email     String   @unique
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+
+  @@map("NewsletterSubscriber")
+}
+
+//////////////////////////////////////////////////////
+// ACTIVITY LOG
+//////////////////////////////////////////////////////
+
+model ActivityLog {
+
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  action    String
+  entity    String?
+  entityId  String?
+
+  userId    String?  @db.ObjectId
+  user      User?    @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userId])
+
+  @@map("ActivityLog")
+}
+
+//////////////////////////////////////////////////////
+// VISITOR CHAT (WEBSITE CHAT WITH US)
+//////////////////////////////////////////////////////
+
+model VisitorChat {
+
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  name      String?
+  email     String?
+
+  message   String
+
+  ip        String?
+  userAgent String?
+
+  isRead    Boolean  @default(false)
+  status    String   @default("open") // open, replied, closed
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([isRead])
+  @@index([status])
+
+  @@map("VisitorChat")
+}
