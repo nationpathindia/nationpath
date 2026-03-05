@@ -9,7 +9,7 @@ import ChatWidget from "@/components/ChatWidget";
 import TrendingNews from "@/components/home/TrendingNews";
 import FlashNewsBar from "@/components/FlashNewsBar";
 
-export const revalidate = 1800;
+export const revalidate = {}
 
 export const metadata: Metadata = {
   title: "Nation Path – Breaking News, Editorial & Analysis",
