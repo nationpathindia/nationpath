@@ -1,16 +1,31 @@
 export default function NotFound() {
   return (
     <div style={{
-      display:"flex",
-      alignItems:"center",
-      justifyContent:"center",
-      height:"100vh",
-      fontFamily:"sans-serif"
+      display: "flex",
+      height: "70vh",
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "column",
+      fontFamily: "sans-serif"
     }}>
-      <div style={{textAlign:"center"}}>
-        <h1 style={{fontSize:"48px",marginBottom:"10px"}}>404</h1>
-        <p>Page not found</p>
-      </div>
+      <h1 style={{fontSize:"42px", marginBottom:"10px"}}>
+        404
+      </h1>
+
+      <p style={{fontSize:"18px"}}>
+        Page not found
+      </p>
+
+      <a href="/" style={{
+        marginTop:"20px",
+        padding:"10px 20px",
+        background:"#e11d48",
+        color:"#fff",
+        textDecoration:"none",
+        borderRadius:"6px"
+      }}>
+        Go Home
+      </a>
     </div>
   );
 }
