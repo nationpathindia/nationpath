@@ -1,44 +1,70 @@
-import { prisma } from "@/lib/prisma"
-import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
 
-export async function POST(req: Request){
+export const dynamic = "force-dynamic";
 
-try{
+export async function POST(req: Request) {
 
-const body = await req.json()
+  try {
 
-const { name,email,message } = body
+    /* ================= SAFE BODY PARSE ================= */
 
-if(!message){
+    let body;
 
-return NextResponse.json(
-{error:"Message required"},
-{status:400}
-)
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json(
+        { success: false, error: "Invalid request body" },
+        { status: 400 }
+      );
+    }
 
-}
+    const { name, email, message } = body;
 
-const chat = await prisma.visitorChat.create({
+    /* ================= VALIDATION ================= */
 
-data:{
-name,
-email,
-message
-}
+    if (!message || typeof message !== "string" || !message.trim()) {
+      return NextResponse.json(
+        { success: false, error: "Message required" },
+        { status: 400 }
+      );
+    }
 
-})
+    /* ================= CREATE CHAT ================= */
 
-return NextResponse.json(chat)
+    const chat = await prisma.visitorChat.create({
+      data: {
+        name: name?.trim() || "Visitor",
+        email: email?.trim() || null,
+        message: message.trim()
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        message: true,
+        createdAt: true
+      }
+    });
 
-}catch(error){
+    return NextResponse.json({
+      success: true,
+      chat
+    });
 
-console.error(error)
+  } catch (error) {
 
-return NextResponse.json(
-{error:"Failed"},
-{status:500}
-)
+    console.error("CHAT SEND ERROR:", error);
 
-}
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to send message"
+      },
+      { status: 500 }
+    );
+
+  }
 
 }
