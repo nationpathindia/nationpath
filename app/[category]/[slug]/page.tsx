@@ -6,6 +6,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import AdRenderer from "@/components/AdRenderer";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 interface Props {
   params: {
     category: string;
