@@ -8,17 +8,35 @@ export async function PUT(
   try {
     const body = await req.json();
 
+    if (!params.id) {
+      return NextResponse.json(
+        { success: false, message: "Ad ID is required" },
+        { status: 400 }
+      );
+    }
+
     const updatedAd = await prisma.ad.update({
       where: {
         id: params.id,
       },
       data: {
         title: body.title,
-        image: body.image,
-        link: body.link,
-        position: body.position,
-        priority: body.priority,
-        status: body.status,
+        placement: body.placement,
+        type: body.type,
+
+        imageUrl: body.imageUrl || null,
+        link: body.link || null,
+        adsenseCode: body.adsenseCode || null,
+
+        priority: Number(body.priority) || 1,
+        status: body.status || "active",
+
+        startDate: body.startDate ? new Date(body.startDate) : null,
+        endDate: body.endDate ? new Date(body.endDate) : null,
+
+        totalBudget: body.totalBudget || null,
+        cpc: body.cpc || null,
+        maxClicks: body.maxClicks || null,
       },
     });
 
@@ -27,7 +45,7 @@ export async function PUT(
       ad: updatedAd,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Ad update error:", error);
 
     return NextResponse.json(
       { success: false, message: "Failed to update ad" },
