@@ -1,13 +1,50 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
-  const { adId } = await req.json();
 
-  await prisma.ad.update({
-    where: { id: adId },
-    data: { status: "paused" },
-  });
+  try {
 
-  return NextResponse.json({ success: true });
+    const body = await req.json();
+    const { adId } = body;
+
+    if (!adId) {
+      return NextResponse.json(
+        { success: false, message: "Ad ID missing" },
+        { status: 400 }
+      );
+    }
+
+    const ad = await prisma.ad.findUnique({
+      where: { id: adId },
+      select: { id: true, status: true }
+    });
+
+    if (!ad) {
+      return NextResponse.json(
+        { success: false, message: "Ad not found" },
+        { status: 404 }
+      );
+    }
+
+    await prisma.ad.update({
+      where: { id: adId },
+      data: { status: "paused" }
+    });
+
+    return NextResponse.json({ success: true });
+
+  } catch (error) {
+
+    console.error("Ad pause error:", error);
+
+    return NextResponse.json(
+      { success: false, message: "Pause failed" },
+      { status: 500 }
+    );
+
+  }
+
 }
