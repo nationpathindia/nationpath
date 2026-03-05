@@ -26,7 +26,7 @@ export default async function Home() {
 
   try{
 
-    const results=await Promise.allSettled([
+    const [a,m,e,h] = await Promise.allSettled([
 
       prisma.article.findMany({
         where:{
@@ -71,27 +71,35 @@ export default async function Home() {
 
     ])
 
-    if(results[0].status==="fulfilled") articles=results[0].value
-    if(results[1].status==="fulfilled") mostRead=results[1].value
-    if(results[2].status==="fulfilled") editorials=results[2].value
-    if(results[3].status==="fulfilled") horoscopes=results[3].value
+    if(a.status==="fulfilled") articles=a.value
+    if(m.status==="fulfilled") mostRead=m.value
+    if(e.status==="fulfilled") editorials=e.value
+    if(h.status==="fulfilled") horoscopes=h.value
 
-  }catch(e){
-    console.error("Homepage error:",e)
+  }catch(err){
+
+    console.error("Homepage error:",err)
+
   }
 
   function cleanText(html:string){
+
     if(!html) return ""
+
     return html
       .replace(/<\/?[^>]+(>|$)/g,"")
       .replace(/&nbsp;/gi," ")
       .replace(/\s+/g," ")
       .trim()
+
   }
 
   function articleUrl(article:any){
+
     if(!article?.category?.slug) return "#"
+
     return `/${article.category.slug}/${article.slug}`
+
   }
 
   const hero=articles?.[0]||null
@@ -103,17 +111,26 @@ export default async function Home() {
   const technology=articles.filter(a=>a?.category?.slug==="technology").slice(0,4)
 
   return(
+
     <main className="max-w-7xl mx-auto px-4 lg:px-6 pt-8">
 
-      <ChatWidget/>
+      {/* CHAT */}
+
+      {ChatWidget && <ChatWidget/>}
+
+      {/* TOP AD */}
 
       <div className="flex justify-center mb-6">
-        <AdRenderer placement="homepage_top"/>
+        {AdRenderer && <AdRenderer placement="homepage_top"/>}
       </div>
 
-      <FlashNewsBar/>
+      {/* FLASH NEWS */}
 
-      {hero &&(
+      {FlashNewsBar && <FlashNewsBar/>}
+
+      {/* HERO */}
+
+      {hero ?(
 
         <section className="border-b pb-12">
 
@@ -149,21 +166,25 @@ export default async function Home() {
 
         </section>
 
-      )}
-
-      {!hero &&(
+      ):(
 
         <div className="text-center text-gray-500 py-20 text-lg">
-          No news available yet. Publish articles from admin panel.
+          Nation Path is Live 🚀
         </div>
 
       )}
 
+      {/* AFTER HERO AD */}
+
       <div className="flex justify-center my-10">
-        <AdRenderer placement="homepage_after_hero"/>
+        {AdRenderer && <AdRenderer placement="homepage_after_hero"/>}
       </div>
 
-      <TrendingNews/>
+      {/* TRENDING */}
+
+      {TrendingNews && <TrendingNews/>}
+
+      {/* FEATURE GRID */}
 
       <section className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 py-12 border-b">
 
@@ -196,9 +217,13 @@ export default async function Home() {
 
       </section>
 
+      {/* MID AD */}
+
       <div className="flex justify-center my-10">
-        <AdRenderer placement="homepage_mid"/>
+        {AdRenderer && <AdRenderer placement="homepage_mid"/>}
       </div>
+
+      {/* LATEST + MOST READ */}
 
       <section className="grid lg:grid-cols-3 gap-12 py-12">
 
@@ -251,7 +276,7 @@ export default async function Home() {
           ))}
 
           <div className="mt-6">
-            <AdRenderer placement="homepage_sidebar_top"/>
+            {AdRenderer && <AdRenderer placement="homepage_sidebar_top"/>}
           </div>
 
         </div>
@@ -261,6 +286,8 @@ export default async function Home() {
       <CategoryBlock title="Politics" articles={politics}/>
       <CategoryBlock title="Defence" articles={defence}/>
       <CategoryBlock title="Technology" articles={technology}/>
+
+      {/* EDITORIAL */}
 
       <section className="py-12 border-t">
 
@@ -283,6 +310,8 @@ export default async function Home() {
         </div>
 
       </section>
+
+      {/* HOROSCOPE */}
 
       <section className="py-12 border-t">
 
@@ -325,10 +354,11 @@ export default async function Home() {
       </section>
 
       <div className="flex justify-center my-10">
-        <AdRenderer placement="homepage_bottom"/>
+        {AdRenderer && <AdRenderer placement="homepage_bottom"/>}
       </div>
 
     </main>
+
   )
 
 }
