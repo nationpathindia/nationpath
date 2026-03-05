@@ -10,18 +10,13 @@ import ChatWidget from "@/components/ChatWidget";
 import TrendingNews from "@/components/home/TrendingNews";
 import FlashNewsBar from "@/components/FlashNewsBar";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 1800;
 
 export const metadata: Metadata = {
   title: "Nation Path – Breaking News, Editorial & Analysis",
   description:
     "Latest breaking news, politics, defence, world, technology and editorial insights from Nation Path.",
-  openGraph: {
-    title: "Nation Path",
-    description:
-      "Latest breaking news and editorial analysis from Nation Path.",
-    type: "website",
-  },
 };
 
 export default async function Home() {
@@ -46,7 +41,7 @@ export default async function Home() {
     });
 
   } catch (err) {
-    console.error("Articles fetch error:", err);
+    console.error(err);
   }
 
   try {
@@ -62,7 +57,7 @@ export default async function Home() {
     });
 
   } catch (err) {
-    console.error("MostRead error:", err);
+    console.error(err);
   }
 
   try {
@@ -78,7 +73,7 @@ export default async function Home() {
     });
 
   } catch (err) {
-    console.error("Editorial error:", err);
+    console.error(err);
   }
 
   try {
@@ -93,7 +88,7 @@ export default async function Home() {
     });
 
   } catch (err) {
-    console.error("Horoscope error:", err);
+    console.error(err);
   }
 
   function cleanText(html: string) {
@@ -121,7 +116,8 @@ export default async function Home() {
     articles?.filter((a) => a?.category?.slug === "defence")?.slice(0, 4) || [];
 
   const technology =
-    articles?.filter((a) => a?.category?.slug === "technology")?.slice(0, 4) || [];
+    articles?.filter((a) => a?.category?.slug === "technology")?.slice(0, 4) ||
+    [];
 
   return (
 
@@ -131,7 +127,7 @@ export default async function Home() {
 
       {/* TOP AD */}
 
-      <div className="flex justify-center mb-8">
+      <div className="flex justify-center mb-6">
         <AdRenderer placement="homepage_top" />
       </div>
 
@@ -139,81 +135,53 @@ export default async function Home() {
 
       <FlashNewsBar />
 
-      {/* HERO SECTION */}
+      {/* HERO */}
 
       {hero && (
 
-        <section className="grid lg:grid-cols-3 gap-10 pb-12 border-b">
+        <section className="border-b pb-12">
 
-          {/* MAIN STORY */}
+          <Link href={articleUrl(hero)}>
 
-          <div className="lg:col-span-2">
+            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl leading-tight hover:text-[#0b2a6f] transition">
+              {hero.title}
+            </h1>
 
-            {hero.images?.[0] && (
+          </Link>
 
-              <Link href={articleUrl(hero)}>
+          <p className="mt-5 text-lg text-gray-600 max-w-3xl leading-relaxed">
+            {cleanText(hero.content).slice(0, 220)}...
+          </p>
 
-                <div className="relative aspect-[16/9] rounded-xl overflow-hidden">
-
-                  <Image
-                    src={hero.images[0]}
-                    alt={hero.title}
-                    fill
-                    priority
-                    className="object-cover"
-                  />
-
-                </div>
-
-              </Link>
-
-            )}
+          {hero?.images && hero.images.length > 0 && (
 
             <Link href={articleUrl(hero)}>
 
-              <h1 className="font-serif text-4xl md:text-5xl mt-6 leading-tight hover:text-[#0b2a6f] transition">
-                {hero.title}
-              </h1>
+              <div className="relative aspect-[16/9] mt-8 rounded-xl overflow-hidden">
+
+                <Image
+                  src={hero.images[0]}
+                  alt={hero.title}
+                  fill
+                  priority
+                  className="object-cover"
+                />
+
+              </div>
 
             </Link>
 
-            <p className="mt-4 text-gray-600 max-w-3xl text-lg leading-relaxed">
-              {cleanText(hero.content).slice(0, 220)}...
-            </p>
-
-          </div>
-
-          {/* SIDE STORIES */}
-
-          <div className="space-y-6">
-
-            {featureGrid.slice(0, 2).map((article) => (
-
-              <Link key={article.id} href={articleUrl(article)} className="flex gap-4">
-
-                {article.images?.[0] && (
-
-                  <Image
-                    src={article.images[0]}
-                    alt={article.title}
-                    width={120}
-                    height={80}
-                    className="rounded"
-                  />
-
-                )}
-
-                <h3 className="font-semibold hover:text-[#0b2a6f]">
-                  {article.title}
-                </h3>
-
-              </Link>
-
-            ))}
-
-          </div>
+          )}
 
         </section>
+
+      )}
+
+      {!hero && (
+
+        <div className="text-center text-gray-500 py-20 text-lg">
+          No news available yet. Start publishing articles from admin panel.
+        </div>
 
       )}
 
@@ -229,28 +197,28 @@ export default async function Home() {
 
       {/* FEATURE GRID */}
 
-      <section className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 py-12 border-b">
+      <section className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 py-12 border-b">
 
         {featureGrid.map((article) => (
 
-          <Link key={article.id} href={articleUrl(article)}>
+          <Link key={article.id} href={articleUrl(article)} className="group">
 
             <div className="relative aspect-[4/3] rounded-lg overflow-hidden mb-3">
 
-              {article.images?.[0] && (
+              {article?.images && article.images.length > 0 && (
 
                 <Image
                   src={article.images[0]}
                   alt={article.title}
                   fill
-                  className="object-cover hover:scale-105 transition"
+                  className="object-cover group-hover:scale-105 transition"
                 />
 
               )}
 
             </div>
 
-            <h3 className="font-serif text-lg hover:text-[#0b2a6f]">
+            <h3 className="font-serif text-lg leading-snug group-hover:text-[#0b2a6f]">
               {article.title}
             </h3>
 
@@ -269,8 +237,6 @@ export default async function Home() {
       {/* LATEST + MOST READ */}
 
       <section className="grid lg:grid-cols-3 gap-12 py-12">
-
-        {/* LATEST */}
 
         <div className="lg:col-span-2 space-y-8">
 
@@ -297,8 +263,6 @@ export default async function Home() {
           ))}
 
         </div>
-
-        {/* MOST READ */}
 
         <div>
 
@@ -399,9 +363,8 @@ export default async function Home() {
     </main>
 
   );
-}
 
-/* SECTION HEADER */
+}
 
 function SectionHeader({ title }: { title: string }) {
 
@@ -420,8 +383,6 @@ function SectionHeader({ title }: { title: string }) {
   );
 
 }
-
-/* CATEGORY BLOCK */
 
 function CategoryBlock({ title, articles }: any) {
 
