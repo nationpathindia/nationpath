@@ -38,15 +38,27 @@ export default async function Home() {
       take: 30,
     });
 
+  } catch (err) {
+    console.error("Articles fetch error:", err);
+  }
+
+  try {
+
     mostRead = await prisma.article.findMany({
       where: {
         status: PostStatus.approved,
         isDeleted: false,
       },
+      include: { category: true },
       orderBy: { views: "desc" },
       take: 5,
-      include: { category: true },
     });
+
+  } catch (err) {
+    console.error("MostRead error:", err);
+  }
+
+  try {
 
     editorials = await prisma.article.findMany({
       where: {
@@ -58,6 +70,12 @@ export default async function Home() {
       take: 6,
     });
 
+  } catch (err) {
+    console.error("Editorial error:", err);
+  }
+
+  try {
+
     horoscopes = await prisma.article.findMany({
       where: {
         status: PostStatus.approved,
@@ -67,8 +85,8 @@ export default async function Home() {
       take: 12,
     });
 
-  } catch (error) {
-    console.error("Homepage DB error:", error);
+  } catch (err) {
+    console.error("Horoscope error:", err);
   }
 
   function cleanText(html: string) {
@@ -89,20 +107,32 @@ export default async function Home() {
   const featureGrid = articles?.slice(1, 5) || [];
   const latest = articles?.slice(5, 11) || [];
 
-  const politics = articles.filter((a) => a.category?.slug === "politics").slice(0, 4);
-  const defence = articles.filter((a) => a.category?.slug === "defence").slice(0, 4);
-  const technology = articles.filter((a) => a.category?.slug === "technology").slice(0, 4);
+  const politics =
+    articles?.filter((a) => a?.category?.slug === "politics")?.slice(0, 4) || [];
+
+  const defence =
+    articles?.filter((a) => a?.category?.slug === "defence")?.slice(0, 4) || [];
+
+  const technology =
+    articles?.filter((a) => a?.category?.slug === "technology")?.slice(0, 4) ||
+    [];
 
   return (
     <main className="max-w-7xl mx-auto px-4 lg:px-6 pt-8">
 
       <ChatWidget />
 
+      {/* TOP AD */}
+
       <div className="flex justify-center mb-6">
         <AdRenderer placement="homepage_top" />
       </div>
 
+      {/* FLASH NEWS */}
+
       <FlashNewsBar />
+
+      {/* HERO */}
 
       {hero && (
         <section className="border-b pb-12">
@@ -117,9 +147,10 @@ export default async function Home() {
             {cleanText(hero.content).slice(0, 220)}...
           </p>
 
-          {hero.images?.[0] && (
+          {hero?.images?.[0] && (
             <Link href={articleUrl(hero)}>
               <div className="relative aspect-[16/9] mt-8 rounded-xl overflow-hidden">
+
                 <Image
                   src={hero.images[0]}
                   alt={hero.title}
@@ -127,6 +158,7 @@ export default async function Home() {
                   priority
                   className="object-cover hover:scale-105 transition duration-700"
                 />
+
               </div>
             </Link>
           )}
@@ -135,16 +167,22 @@ export default async function Home() {
       )}
 
       {!hero && (
-        <div className="text-center text-gray-500 py-20">
-          No news published yet.
+        <div className="text-center text-gray-500 py-20 text-lg">
+          No news available yet. Start publishing articles from admin panel.
         </div>
       )}
+
+      {/* AFTER HERO AD */}
 
       <div className="flex justify-center my-10">
         <AdRenderer placement="homepage_after_hero" />
       </div>
 
+      {/* TRENDING */}
+
       <TrendingNews />
+
+      {/* FEATURE GRID */}
 
       <section className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 py-12 border-b">
 
@@ -154,13 +192,15 @@ export default async function Home() {
 
             <div className="relative aspect-[4/3] rounded-lg overflow-hidden mb-3">
 
-              {article.images?.[0] && (
+              {article?.images?.[0] && (
+
                 <Image
                   src={article.images[0]}
                   alt={article.title}
                   fill
                   className="object-cover group-hover:scale-105 transition duration-500"
                 />
+
               )}
 
             </div>
@@ -175,9 +215,13 @@ export default async function Home() {
 
       </section>
 
+      {/* MID AD */}
+
       <div className="flex justify-center my-10">
         <AdRenderer placement="homepage_mid" />
       </div>
+
+      {/* LATEST + MOST READ */}
 
       <section className="grid lg:grid-cols-3 gap-12 py-12">
 
@@ -237,13 +281,13 @@ export default async function Home() {
 
       </section>
 
-      <div className="flex justify-center my-10">
-        <AdRenderer placement="homepage_after_list" />
-      </div>
+      {/* CATEGORY BLOCKS */}
 
       <CategoryBlock title="Politics" articles={politics} />
       <CategoryBlock title="Defence" articles={defence} />
       <CategoryBlock title="Technology" articles={technology} />
+
+      {/* EDITORIAL */}
 
       <section className="py-12 border-t">
 
@@ -266,6 +310,8 @@ export default async function Home() {
         </div>
 
       </section>
+
+      {/* HOROSCOPE */}
 
       <section className="py-12 border-t">
 
@@ -307,6 +353,8 @@ export default async function Home() {
 
       </section>
 
+      {/* BOTTOM AD */}
+
       <div className="flex justify-center my-10">
         <AdRenderer placement="homepage_bottom" />
       </div>
@@ -332,7 +380,7 @@ function SectionHeader({ title }: { title: string }) {
 
 function CategoryBlock({ title, articles }: any) {
 
-  if (!articles.length) return null;
+  if (!articles?.length) return null;
 
   return (
     <section className="py-12 border-t">
