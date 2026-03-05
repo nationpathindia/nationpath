@@ -70,18 +70,23 @@ body::before {
 .fade-in {
   animation: fadeInUp 0.8s ease-out both;
 }
-
-
-@keyframes marquee {
-  0% {
-    transform: translateX(100%);
-  }
-  100% {
-    transform: translateX(-100%);
-  }
+.ticker{
+display:flex;
+animation:tickerMove 30s linear infinite;
 }
 
-.animate-marquee {
-  display: inline-block;
-  animation: marquee 25s linear infinite;
+.ticker:hover{
+animation-play-state:paused;
+}
+
+@keyframes tickerMove{
+
+0%{
+transform:translateX(0);
+}
+
+100%{
+transform:translateX(-50%);
+}
+
 }

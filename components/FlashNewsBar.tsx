@@ -1,65 +1,70 @@
-"use client"
+import { prisma } from "@/lib/prisma";
+import { PostStatus } from "@prisma/client";
+import Link from "next/link";
 
-import { useEffect, useState } from "react"
-import Link from "next/link"
+export default async function FlashNewsBar() {
 
-type Article = {
-  id: string
-  title: string
-  slug: string
-  category?: { slug: string }
-}
+let flash:any[]=[]
 
-export default function FlashNewsBar() {
+try{
 
-  const [news, setNews] = useState<Article[]>([])
+flash = await prisma.article.findMany({
+where:{
+status:PostStatus.approved,
+isDeleted:false,
+flash:true
+},
+include:{category:true},
+orderBy:{flashPriority:"desc"},
+take:10
+})
 
-  useEffect(() => {
-    fetch("/api/flash")
-      .then(res => res.json())
-      .then(setNews)
-  }, [])
+}catch(e){}
 
-  if (news.length === 0) return null
+if(!flash.length) return null
 
-  return (
+return(
 
-    <div className="bg-gray-100 border-y">
+<div className="w-full mb-6">
 
-      <div className="max-w-7xl mx-auto flex items-center h-10">
+<div className="flex w-full overflow-hidden rounded-sm border">
 
-        {/* LABEL */}
+{/* LEFT LABEL */}
 
-        <div className="bg-blue-600 text-white px-4 py-2 text-xs font-semibold tracking-wider">
-          FLASH
-        </div>
+<div className="bg-[#2c4c72] text-white font-bold px-6 py-3 tracking-wider text-sm md:text-base">
 
-        {/* NEWS TICKER */}
+FLASH NEWS
 
-        <div className="flex-1 overflow-hidden">
+</div>
 
-          <div className="animate-marquee whitespace-nowrap px-6 text-sm">
+{/* TICKER */}
 
-            {news.map((n) => (
+<div className="flex-1 bg-gray-100 overflow-hidden">
 
-              <Link
-                key={n.id}
-                href={`/${n.category?.slug}/${n.slug}`}
-                className="mr-10 hover:text-blue-700 transition"
-              >
-                {n.title}
-              </Link>
+<div className="ticker flex items-center gap-12 whitespace-nowrap px-6 py-3 text-gray-900 font-medium text-sm md:text-base">
 
-            ))}
+{flash.map(item=>(
 
-          </div>
+<Link
+key={item.id}
+href={`/${item.category?.slug}/${item.slug}`}
+className="hover:text-blue-700 transition"
+>
 
-        </div>
+{item.title}
 
-      </div>
+</Link>
 
-    </div>
+))}
 
-  )
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+)
 
 }
