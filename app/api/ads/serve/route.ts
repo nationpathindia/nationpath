@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: Request) {
 
   try {
@@ -31,21 +33,21 @@ export async function GET(req: Request) {
           {
             OR: [
               { startDate: null },
-              { startDate: { lte: now } },
-            ],
+              { startDate: { lte: now } }
+            ]
           },
           {
             OR: [
               { endDate: null },
-              { endDate: { gte: now } },
-            ],
-          },
-        ],
+              { endDate: { gte: now } }
+            ]
+          }
+        ]
       },
 
       orderBy: [
         { priority: "desc" },
-        { createdAt: "desc" },
+        { createdAt: "desc" }
       ],
 
       select: {
@@ -56,12 +58,15 @@ export async function GET(req: Request) {
         adsenseCode: true,
         clicks: true,
         cpc: true,
-        totalBudget: true,
-      },
+        totalBudget: true
+      }
     });
 
-    if (!ads.length) {
-      return NextResponse.json({ success: true, ad: null });
+    if (!ads || ads.length === 0) {
+      return NextResponse.json({
+        success: true,
+        ad: null
+      });
     }
 
     /* ==============================
@@ -78,8 +83,11 @@ export async function GET(req: Request) {
 
     });
 
-    if (!validAds.length) {
-      return NextResponse.json({ success: true, ad: null });
+    if (validAds.length === 0) {
+      return NextResponse.json({
+        success: true,
+        ad: null
+      });
     }
 
     /* ==============================
@@ -100,8 +108,8 @@ export async function GET(req: Request) {
         type: selected.type,
         imageUrl: selected.imageUrl,
         link: selected.link,
-        adsenseCode: selected.adsenseCode,
-      },
+        adsenseCode: selected.adsenseCode
+      }
     });
 
   } catch (error) {
@@ -112,6 +120,7 @@ export async function GET(req: Request) {
       { success: false, message: "Server error" },
       { status: 500 }
     );
+
   }
 
 }
