@@ -272,7 +272,7 @@ export default async function ArticlePage({ params }: Props) {
 
           <div className="prose prose-lg max-w-none leading-relaxed">
 
-            {paragraphs.map((para, index) => (
+          {paragraphs.map((para: string, index: number) => (
               <div key={index}>
 
                 <div
