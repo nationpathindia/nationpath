@@ -1,31 +1,56 @@
 import { prisma } from "@/lib/prisma"
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 
-export async function POST(req:Request){
+export const dynamic = "force-dynamic"
 
-const body = await req.json()
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json()
 
-const { senderId, receiverId, message } = body
+    const { senderId, receiverId, message } = body
 
-if(!senderId || !receiverId || !message){
+    if (!senderId || !receiverId || !message) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      )
+    }
 
-return NextResponse.json(
-{error:"Missing fields"},
-{status:400}
-)
+    const newMessage = await prisma.chatMessage.create({
+      data: {
+        senderId,
+        receiverId,
+        message
+      },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        receiver: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      }
+    })
 
-}
+    return NextResponse.json({
+      success: true,
+      message: newMessage
+    })
 
-const chat = await prisma.chatMessage.create({
+  } catch (error) {
+    console.error("Chat send error:", error)
 
-data:{
-senderId,
-receiverId,
-message
-}
-
-})
-
-return NextResponse.json(chat)
-
+    return NextResponse.json(
+      { error: "Failed to send message" },
+      { status: 500 }
+    )
+  }
 }
