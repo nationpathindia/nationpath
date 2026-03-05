@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import Post from "@/models/Post";
-import connectDB from "@/lib/connectDB";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
   await connectDB();
