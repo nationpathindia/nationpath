@@ -26,7 +26,7 @@ export async function GET() {
         name: true,
         email: true,
         role: true,
-        status: true,
+       isActive: true,
         createdAt: true,
       },
       orderBy: {
