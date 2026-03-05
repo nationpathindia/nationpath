@@ -310,7 +310,7 @@ export default async function ArticlePage({ params }: Props) {
               Most Read
             </h3>
 
-            {mostRead.map((item, index) => (
+            {mostRead.map((item: any, index: number) => (
               <Link
                 key={item.id}
                 href={`/${item.category?.slug}/${item.slug}`}
