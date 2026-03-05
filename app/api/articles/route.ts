@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { PostStatus } from "@prisma/client";
 
+export const dynamic = "force-dynamic";
+
 /* ================= UTIL ================= */
 
 function stripHtml(html: string) {
@@ -105,7 +107,7 @@ export async function GET(req: Request) {
           isAstrology: true,
 
           category: lightweight
-            ? false
+            ? undefined
             : {
                 select: {
                   id: true,
@@ -115,7 +117,7 @@ export async function GET(req: Request) {
               },
 
           author: lightweight
-            ? false
+            ? undefined
             : {
                 select: {
                   id: true,
@@ -234,8 +236,6 @@ export async function POST(req: Request) {
 
         videoUrl: body.videoUrl || null,
 
-        /* ================= NEWS FLAGS ================= */
-
         breaking: Boolean(body.breaking),
         flash: Boolean(body.flash),
         featured: Boolean(body.featured),
@@ -244,16 +244,10 @@ export async function POST(req: Request) {
         flashPriority: Number(body.flashPriority) || 0,
         homepagePriority: Number(body.homepagePriority) || 0,
 
-        /* ================= TYPES ================= */
-
         isEditorial,
         isAstrology,
 
-        /* ================= STATUS ================= */
-
         status: validStatus,
-
-        /* ================= SEO ================= */
 
         metaTitle: body.metaTitle || body.title,
 
@@ -267,8 +261,6 @@ export async function POST(req: Request) {
             .split(" ")
             .slice(0, 10)
             .join(", "),
-
-        /* ================= CATEGORY ================= */
 
         categoryId:
           isEditorial || isAstrology ? null : body.categoryId,
