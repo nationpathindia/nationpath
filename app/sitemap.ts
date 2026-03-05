@@ -1,101 +1,107 @@
 import { prisma } from "@/lib/prisma";
 import { MetadataRoute } from "next";
 
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
-  const baseUrl = "https://www.nationpathindia.com";
+  try {
 
-  /* ================= ARTICLES ================= */
+    const baseUrl = "https://www.nationpathindia.com";
 
-  const articles = await prisma.article.findMany({
-    where: {
-      status: "approved",
-      isDeleted: false,
-    },
-    select: {
-      slug: true,
-      updatedAt: true,
-      category: {
-        select: {
-          slug: true,
+    /* ================= ARTICLES ================= */
+
+    const articles = await prisma.article.findMany({
+      where: {
+        status: "approved",
+        isDeleted: false,
+      },
+      select: {
+        slug: true,
+        updatedAt: true,
+        category: {
+          select: {
+            slug: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  const articleUrls = articles.map((article) => ({
-    url: `${baseUrl}/${article.category?.slug}/${article.slug}`,
-    lastModified: article.updatedAt,
-    changeFrequency: "daily" as const,
-    priority: 0.9,
-  }));
+    const articleUrls = articles.map((article) => ({
+      url: `${baseUrl}/${article.category?.slug}/${article.slug}`,
+      lastModified: article.updatedAt,
+      changeFrequency: "daily" as const,
+      priority: 0.9,
+    }));
 
-  /* ================= CATEGORIES ================= */
+    /* ================= CATEGORIES ================= */
 
-  const categories = await prisma.category.findMany({
-    select: {
-      slug: true,
-    },
-  });
+    const categories = await prisma.category.findMany({
+      select: {
+        slug: true,
+      },
+    });
 
-  const categoryUrls = categories.map((cat) => ({
-    url: `${baseUrl}/category/${cat.slug}`,
-    lastModified: new Date(),
-    changeFrequency: "daily" as const,
-    priority: 0.8,
-  }));
-
-  /* ================= STATIC PAGES ================= */
-
-  const staticPages = [
-    {
-      url: baseUrl,
+    const categoryUrls = categories.map((cat) => ({
+      url: `${baseUrl}/category/${cat.slug}`,
       lastModified: new Date(),
       changeFrequency: "daily" as const,
-      priority: 1,
-    },
+      priority: 0.8,
+    }));
 
-    {
-      url: `${baseUrl}/about`,
-      lastModified: new Date(),
-      changeFrequency: "monthly" as const,
-      priority: 0.7,
-    },
+    /* ================= STATIC PAGES ================= */
 
-    {
-      url: `${baseUrl}/contact`,
-      lastModified: new Date(),
-      changeFrequency: "monthly" as const,
-      priority: 0.7,
-    },
+    const staticPages = [
+      {
+        url: baseUrl,
+        lastModified: new Date(),
+        changeFrequency: "daily" as const,
+        priority: 1,
+      },
+      {
+        url: `${baseUrl}/about`,
+        lastModified: new Date(),
+        changeFrequency: "monthly" as const,
+        priority: 0.7,
+      },
+      {
+        url: `${baseUrl}/contact`,
+        lastModified: new Date(),
+        changeFrequency: "monthly" as const,
+        priority: 0.7,
+      },
+      {
+        url: `${baseUrl}/advertise`,
+        lastModified: new Date(),
+        changeFrequency: "monthly" as const,
+        priority: 0.6,
+      },
+      {
+        url: `${baseUrl}/privacy-policy`,
+        lastModified: new Date(),
+        changeFrequency: "yearly" as const,
+        priority: 0.3,
+      },
+      {
+        url: `${baseUrl}/terms`,
+        lastModified: new Date(),
+        changeFrequency: "yearly" as const,
+        priority: 0.3,
+      },
+    ];
 
-    {
-      url: `${baseUrl}/advertise`,
-      lastModified: new Date(),
-      changeFrequency: "monthly" as const,
-      priority: 0.6,
-    },
+    return [
+      ...staticPages,
+      ...categoryUrls,
+      ...articleUrls,
+    ];
 
-    {
-      url: `${baseUrl}/privacy-policy`,
-      lastModified: new Date(),
-      changeFrequency: "yearly" as const,
-      priority: 0.3,
-    },
+  } catch (error) {
 
-    {
-      url: `${baseUrl}/terms`,
-      lastModified: new Date(),
-      changeFrequency: "yearly" as const,
-      priority: 0.3,
-    },
-  ];
+    console.error("SITEMAP ERROR:", error);
 
-  /* ================= RETURN ================= */
+    return [];
 
-  return [
-    ...staticPages,
-    ...categoryUrls,
-    ...articleUrls,
-  ];
+  }
+
 }
