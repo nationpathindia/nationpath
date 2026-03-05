@@ -2,11 +2,21 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/getCurrentUser";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(
   req: Request,
   { params }: { params: { slug: string } }
 ) {
   try {
+
+    if (!params?.slug) {
+      return NextResponse.json(
+        { error: "Article slug required" },
+        { status: 400 }
+      );
+    }
+
     const user = await getCurrentUser();
 
     if (!user) {
@@ -20,6 +30,10 @@ export async function POST(
       where: {
         slug: params.slug,
       },
+      select: {
+        id: true,
+        likes: true
+      }
     });
 
     if (!article) {
@@ -38,18 +52,24 @@ export async function POST(
           increment: 1,
         },
       },
+      select: {
+        likes: true
+      }
     });
 
     return NextResponse.json({
       success: true,
       likes: updated.likes,
     });
+
   } catch (error) {
+
     console.error("Like error:", error);
 
     return NextResponse.json(
       { error: "Server error" },
       { status: 500 }
     );
+
   }
 }
