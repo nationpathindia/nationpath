@@ -7,13 +7,9 @@ import type { Metadata } from "next"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-title: "Nation Path – Breaking News, Editorial & Analysis",
+title: "Nation Path – Breaking News & Editorial",
 description:
-"Latest breaking news, politics, defence, world, technology and editorial insights from Nation Path.",
-openGraph:{
-title:"Nation Path",
-description:"Independent digital newsroom delivering credible journalism."
-}
+"Nation Path delivers breaking news, politics, defence, world and technology coverage."
 }
 
 export default async function Home(){
@@ -22,6 +18,7 @@ let articles:any[]=[]
 let flash:any[]=[]
 let editorials:any[]=[]
 let horoscope:any[]=[]
+let mostRead:any[]=[]
 
 try{
 
@@ -55,6 +52,19 @@ take:5
 
 try{
 
+mostRead=await prisma.article.findMany({
+where:{
+status:PostStatus.approved,
+isDeleted:false
+},
+orderBy:{views:"desc"},
+take:5
+})
+
+}catch(e){}
+
+try{
+
 editorials=await prisma.article.findMany({
 where:{
 isEditorial:true,
@@ -80,8 +90,9 @@ take:12
 }catch(e){}
 
 const hero=articles[0]
-const feature=articles.slice(1,5)
-const latest=articles.slice(5,15)
+const secondary=articles.slice(1,3)
+const feature=articles.slice(3,7)
+const latest=articles.slice(7,18)
 
 const politics=articles.filter(a=>a?.category?.slug==="politics").slice(0,4)
 const defence=articles.filter(a=>a?.category?.slug==="defence").slice(0,4)
@@ -96,7 +107,7 @@ return(
 
 <main className="max-w-7xl mx-auto px-4 pt-8">
 
-{/* FLASH TICKER */}
+{/* FLASH BAR */}
 
 {flash.length>0 &&(
 
@@ -118,34 +129,32 @@ return(
 
 )}
 
-{/* TOP AD */}
-
-<div className="border border-dashed h-[90px] flex items-center justify-center text-gray-400 mb-10">
-TOP AD 970x90
-</div>
-
 {/* HERO */}
 
 {hero &&(
 
-<section className="mb-14">
+<section className="grid lg:grid-cols-2 gap-10 mb-14">
+
+<div>
 
 <Link href={url(hero)}>
 
-<h1 className="text-5xl font-bold leading-tight mb-6 hover:text-blue-800">
+<h1 className="text-5xl font-bold leading-tight hover:text-blue-700">
 {hero.title}
 </h1>
 
 </Link>
+
+</div>
 
 {hero?.images?.[0] &&(
 
 <Image
 src={hero.images[0]}
 alt={hero.title}
-width={1200}
-height={650}
-className="rounded-lg"
+width={700}
+height={420}
+className="rounded"
 />
 
 )}
@@ -154,27 +163,15 @@ className="rounded-lg"
 
 )}
 
-{/* FEATURE GRID */}
+{/* SECONDARY STORIES */}
 
-<section className="grid md:grid-cols-4 gap-6 mb-14">
+<section className="grid md:grid-cols-2 gap-10 mb-14">
 
-{feature.map(a=>(
+{secondary.map(a=>(
 
-<Link key={a.id} href={url(a)} className="group">
+<Link key={a.id} href={url(a)}>
 
-{a?.images?.[0] &&(
-
-<Image
-src={a.images[0]}
-alt={a.title}
-width={400}
-height={250}
-className="rounded"
-/>
-
-)}
-
-<h3 className="font-semibold mt-3 leading-snug group-hover:text-blue-700">
+<h3 className="text-xl font-semibold hover:text-blue-700">
 {a.title}
 </h3>
 
@@ -184,19 +181,43 @@ className="rounded"
 
 </section>
 
-{/* MID AD */}
+{/* FEATURE GRID */}
 
-<div className="border border-dashed h-[90px] flex items-center justify-center text-gray-400 mb-12">
-MID AD 970x90
-</div>
+<section className="grid md:grid-cols-4 gap-6 mb-16">
 
-{/* LATEST + SIDEBAR */}
+{feature.map(a=>(
+
+<Link key={a.id} href={url(a)}>
+
+{a?.images?.[0] &&(
+
+<Image
+src={a.images[0]}
+alt={a.title}
+width={400}
+height={240}
+className="rounded"
+/>
+
+)}
+
+<h3 className="font-semibold mt-2 hover:text-blue-700">
+{a.title}
+</h3>
+
+</Link>
+
+))}
+
+</section>
+
+{/* LATEST + MOST READ */}
 
 <section className="grid lg:grid-cols-3 gap-12">
 
 <div className="lg:col-span-2">
 
-<h2 className="text-2xl font-bold mb-6 border-b pb-2">
+<h2 className="text-2xl font-bold border-b pb-2 mb-6">
 Latest News
 </h2>
 
@@ -204,7 +225,7 @@ Latest News
 
 {latest.map(a=>(
 
-<div key={a.id} className="border-b pb-5">
+<div key={a.id} className="border-b pb-4">
 
 <Link href={url(a)}>
 
@@ -222,34 +243,34 @@ Latest News
 
 </div>
 
-{/* SIDEBAR */}
-
 <div>
 
-<h2 className="text-xl font-bold mb-6 border-b pb-2">
-Editorial
+<h2 className="text-xl font-bold border-b pb-2 mb-6">
+Most Read
 </h2>
 
-<div className="space-y-4 mb-10">
+<div className="space-y-4">
 
-{editorials.map(e=>(
+{mostRead.map((a,i)=>(
 
-<Link key={e.id} href={`/editorial/${e.slug}`}>
+<Link key={a.id} href={url(a)}>
+
+<div className="flex gap-4">
+
+<span className="text-gray-400 font-bold text-xl">
+{String(i+1).padStart(2,"0")}
+</span>
 
 <p className="hover:text-blue-700">
-{e.title}
+{a.title}
 </p>
+
+</div>
 
 </Link>
 
 ))}
 
-</div>
-
-{/* SIDEBAR AD */}
-
-<div className="border border-dashed h-[250px] flex items-center justify-center text-gray-400">
-SIDEBAR AD 300x250
 </div>
 
 </div>
@@ -262,11 +283,11 @@ SIDEBAR AD 300x250
 <CategoryBlock title="Defence" articles={defence}/>
 <CategoryBlock title="Technology" articles={technology}/>
 
-{/* EDITORIAL GRID */}
+{/* EDITORIAL */}
 
 <section className="mt-16">
 
-<h2 className="text-2xl font-bold mb-6 border-b pb-2">
+<h2 className="text-2xl font-bold border-b pb-2 mb-6">
 Editorial
 </h2>
 
@@ -292,7 +313,7 @@ Editorial
 
 <section className="mt-16">
 
-<h2 className="text-2xl font-bold mb-6 border-b pb-2">
+<h2 className="text-2xl font-bold border-b pb-2 mb-6">
 Daily Horoscope
 </h2>
 
@@ -316,12 +337,6 @@ Daily Horoscope
 
 </section>
 
-{/* BOTTOM AD */}
-
-<div className="border border-dashed h-[90px] flex items-center justify-center text-gray-400 mt-16">
-BOTTOM AD 970x90
-</div>
-
 </main>
 
 )
@@ -336,7 +351,7 @@ return(
 
 <section className="mt-16">
 
-<h2 className="text-2xl font-bold mb-6 border-b pb-2">
+<h2 className="text-2xl font-bold border-b pb-2 mb-6">
 {title}
 </h2>
 
