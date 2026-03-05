@@ -1,22 +1,33 @@
 import { cookies } from "next/headers";
-import User from "@/app/models/User";
+import { prisma } from "@/lib/prisma";
 import { verifyToken } from "./auth";
 
+type TokenPayload = {
+  id: string;
+  role: string;
+};
+
 export async function getCurrentUser() {
-  const cookieStore = cookies();
-  const token = cookieStore.get("token")?.value;
+  try {
+    const cookieStore = cookies();
+    const token = cookieStore.get("token")?.value;
 
-  if (!token) return null;
+    if (!token) return null;
 
-  const decoded: any = verifyToken(token);
-  if (!decoded) return null;
+    const decoded = verifyToken(token) as TokenPayload;
+    if (!decoded?.id) return null;
 
-  await dbConnect();
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+    });
 
-  const user = await User.findById(decoded.id).lean();
-  if (!user) return null;
+    if (!user) return null;
 
-  if (user.status === "blocked") return null;
+    if (user.status === "blocked") return null;
 
-  return user;
+    return user;
+  } catch (error) {
+    console.error("getCurrentUser error:", error);
+    return null;
+  }
 }

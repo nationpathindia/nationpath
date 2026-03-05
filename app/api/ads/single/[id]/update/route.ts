@@ -1,15 +1,37 @@
 import { NextResponse } from "next/server";
-import Ad from "@/app/models/Ad";
+import { prisma } from "@/lib/prisma";
 
 export async function PUT(
   req: Request,
   { params }: { params: { id: string } }
 ) {
-  await dbConnect();
+  try {
+    const body = await req.json();
 
-  const body = await req.json();
+    const updatedAd = await prisma.ad.update({
+      where: {
+        id: params.id,
+      },
+      data: {
+        title: body.title,
+        image: body.image,
+        link: body.link,
+        position: body.position,
+        priority: body.priority,
+        status: body.status,
+      },
+    });
 
-  await Ad.findByIdAndUpdate(params.id, body);
+    return NextResponse.json({
+      success: true,
+      ad: updatedAd,
+    });
+  } catch (error) {
+    console.error(error);
 
-  return NextResponse.json({ success: true });
+    return NextResponse.json(
+      { success: false, message: "Failed to update ad" },
+      { status: 500 }
+    );
+  }
 }

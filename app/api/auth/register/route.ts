@@ -1,28 +1,56 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import User from "@/app/models/User";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
     const { name, email, password, role } = await req.json();
 
-    await dbConnect();
+    if (!name || !email || !password) {
+      return NextResponse.json(
+        { error: "Name, email and password are required" },
+        { status: 400 }
+      );
+    }
 
-    const existing = await User.findOne({ email });
-    if (existing)
-      return NextResponse.json({ error: "User exists" }, { status: 400 });
-
-    const hashed = await bcrypt.hash(password, 10);
-
-    const user = await User.create({
-      name,
-      email,
-      password: hashed,
-      role: role || "admin", // first user becomes admin
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
     });
 
-    return NextResponse.json({ success: true, user });
-  } catch (err) {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    if (existingUser) {
+      return NextResponse.json(
+        { error: "User already exists" },
+        { status: 400 }
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        role: role || "admin", // first user can be admin
+        status: "active",
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Server error" },
+      { status: 500 }
+    );
   }
 }

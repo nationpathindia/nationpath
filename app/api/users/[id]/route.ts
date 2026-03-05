@@ -1,50 +1,88 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/getCurrentUser";
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
   try {
     const currentUser = await getCurrentUser();
-    if (!currentUser)
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    await dbConnect();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
 
-    const targetUser = await User.findById(params.id);
-    if (!targetUser)
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    const targetUser = await prisma.user.findUnique({
+      where: { id: params.id },
+    });
 
-    if (currentUser._id.toString() === targetUser._id.toString())
-      return NextResponse.json({ error: "Cannot modify yourself" }, { status: 403 });
+    if (!targetUser) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    if (currentUser.id === targetUser.id) {
+      return NextResponse.json(
+        { error: "Cannot modify yourself" },
+        { status: 403 }
+      );
+    }
 
     const body = await req.json();
 
     // ADMIN LOGIC
     if (currentUser.role === "admin") {
-      if (targetUser.role === "admin")
-        return NextResponse.json({ error: "Cannot modify another admin" }, { status: 403 });
+      if (targetUser.role === "admin") {
+        return NextResponse.json(
+          { error: "Cannot modify another admin" },
+          { status: 403 }
+        );
+      }
 
-      Object.assign(targetUser, body);
-      await targetUser.save();
+      await prisma.user.update({
+        where: { id: params.id },
+        data: body,
+      });
 
       return NextResponse.json({ success: true });
     }
 
     // EDITOR LOGIC
     if (currentUser.role === "editor") {
-      if (targetUser.role !== "reporter")
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      if (targetUser.role !== "reporter") {
+        return NextResponse.json(
+          { error: "Forbidden" },
+          { status: 403 }
+        );
+      }
 
-      delete body.role; // editor cannot change role
+      delete body.role;
 
-      Object.assign(targetUser, body);
-      await targetUser.save();
+      await prisma.user.update({
+        where: { id: params.id },
+        data: body,
+      });
 
       return NextResponse.json({ success: true });
     }
 
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  } catch {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Forbidden" },
+      { status: 403 }
+    );
+  } catch (error) {
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Server error" },
+      { status: 500 }
+    );
   }
 }
 
@@ -54,38 +92,74 @@ export async function DELETE(
 ) {
   try {
     const currentUser = await getCurrentUser();
-    if (!currentUser)
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    await dbConnect();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
 
-    const targetUser = await User.findById(params.id);
-    if (!targetUser)
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    const targetUser = await prisma.user.findUnique({
+      where: { id: params.id },
+    });
 
-    if (currentUser._id.toString() === targetUser._id.toString())
-      return NextResponse.json({ error: "Cannot delete yourself" }, { status: 403 });
+    if (!targetUser) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    if (currentUser.id === targetUser.id) {
+      return NextResponse.json(
+        { error: "Cannot delete yourself" },
+        { status: 403 }
+      );
+    }
 
     // ADMIN
     if (currentUser.role === "admin") {
-      if (targetUser.role === "admin")
-        return NextResponse.json({ error: "Cannot delete another admin" }, { status: 403 });
+      if (targetUser.role === "admin") {
+        return NextResponse.json(
+          { error: "Cannot delete another admin" },
+          { status: 403 }
+        );
+      }
 
-      await targetUser.deleteOne();
+      await prisma.user.delete({
+        where: { id: params.id },
+      });
+
       return NextResponse.json({ success: true });
     }
 
     // EDITOR
     if (currentUser.role === "editor") {
-      if (targetUser.role !== "reporter")
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      if (targetUser.role !== "reporter") {
+        return NextResponse.json(
+          { error: "Forbidden" },
+          { status: 403 }
+        );
+      }
 
-      await targetUser.deleteOne();
+      await prisma.user.delete({
+        where: { id: params.id },
+      });
+
       return NextResponse.json({ success: true });
     }
 
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  } catch {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Forbidden" },
+      { status: 403 }
+    );
+  } catch (error) {
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Server error" },
+      { status: 500 }
+    );
   }
 }
