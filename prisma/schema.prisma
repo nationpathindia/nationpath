@@ -27,6 +27,10 @@ enum PostStatus {
   archived
 }
 
+//////////////////////////////////////////////////////
+// AD ENUMS
+//////////////////////////////////////////////////////
+
 enum AdPlacement {
   homepage_top
   homepage_after_hero
@@ -58,6 +62,7 @@ enum AdType {
 //////////////////////////////////////////////////////
 
 model Category {
+
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   slug        String   @unique
@@ -76,6 +81,7 @@ model Category {
 
   @@index([status])
   @@index([priority])
+
   @@map("Category")
 }
 
@@ -96,6 +102,10 @@ model Article {
   images    String[] @default([])
   videoUrl  String?
 
+  //////////////////////////////////////////////////////
+  // FLAGS
+  //////////////////////////////////////////////////////
+
   breaking         Boolean @default(false)
   flash            Boolean @default(false)
   featured         Boolean @default(false)
@@ -109,11 +119,23 @@ model Article {
   breakingPriority Int @default(0)
   flashPriority    Int @default(0)
 
+  //////////////////////////////////////////////////////
+  // HOROSCOPE
+  //////////////////////////////////////////////////////
+
   zodiacSign     String?
   horoscopeDate  DateTime?
 
+  //////////////////////////////////////////////////////
+  // STATUS
+  //////////////////////////////////////////////////////
+
   status       PostStatus @default(pending)
   publishedAt  DateTime?
+
+  //////////////////////////////////////////////////////
+  // ENGAGEMENT
+  //////////////////////////////////////////////////////
 
   views      Int @default(0)
   likes      Int @default(0)
@@ -124,10 +146,22 @@ model Article {
   surprising Int @default(0)
   concerning Int @default(0)
 
+  //////////////////////////////////////////////////////
+  // TRENDING
+  //////////////////////////////////////////////////////
+
   trendingScore Int      @default(0)
   lastViewAt    DateTime?
 
+  //////////////////////////////////////////////////////
+  // TAGS
+  //////////////////////////////////////////////////////
+
   tags String[] @default([])
+
+  //////////////////////////////////////////////////////
+  // SEO
+  //////////////////////////////////////////////////////
 
   readingTime       Int?
   metaTitle         String?
@@ -137,8 +171,16 @@ model Article {
   ogImage           String?
   structuredData    String?
 
+  //////////////////////////////////////////////////////
+  // TIMESTAMPS
+  //////////////////////////////////////////////////////
+
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
+
+  //////////////////////////////////////////////////////
+  // RELATIONS
+  //////////////////////////////////////////////////////
 
   categoryId String?   @db.ObjectId
   category   Category? @relation(fields: [categoryId], references: [id])
@@ -148,11 +190,13 @@ model Article {
 
   comments Comment[]
 
+  //////////////////////////////////////////////////////
+  // INDEXES
+  //////////////////////////////////////////////////////
+
   @@index([status])
   @@index([createdAt])
   @@index([views])
-  @@index([likes])
-  @@index([trendingScore])
   @@index([breaking])
   @@index([flash])
   @@index([featured])
@@ -160,10 +204,6 @@ model Article {
   @@index([isEditorial])
   @@index([isAstrology])
   @@index([isDeleted])
-  @@index([categoryId])
-
-  @@index([status, createdAt])
-  @@index([status, views])
 
   @@map("Article")
 }
@@ -175,7 +215,6 @@ model Article {
 model Comment {
 
   id        String @id @default(auto()) @map("_id") @db.ObjectId
-
   content   String
 
   userId    String? @db.ObjectId
@@ -208,7 +247,6 @@ model User {
 
   role      Role @default(user)
   isActive  Boolean @default(true)
-
   avatar    String?
 
   createdAt DateTime @default(now())
@@ -216,10 +254,6 @@ model User {
 
   articles  Article[]
   comments  Comment[]
-  activity  ActivityLog[]
-
-  sentMessages     ChatMessage[] @relation("MessageSender")
-  receivedMessages ChatMessage[] @relation("MessageReceiver")
 
   @@index([role])
   @@index([isActive])
@@ -228,33 +262,7 @@ model User {
 }
 
 //////////////////////////////////////////////////////
-// CHAT
-//////////////////////////////////////////////////////
-
-model ChatMessage {
-
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-
-  senderId   String? @db.ObjectId
-  sender     User?   @relation("MessageSender", fields:[senderId], references:[id])
-
-  receiverId String? @db.ObjectId
-  receiver   User?   @relation("MessageReceiver", fields:[receiverId], references:[id])
-
-  message    String
-  isRead     Boolean  @default(false)
-
-  createdAt  DateTime @default(now())
-
-  @@index([senderId])
-  @@index([receiverId])
-  @@index([createdAt])
-
-  @@map("ChatMessage")
-}
-
-//////////////////////////////////////////////////////
-// AD SYSTEM
+// ADS
 //////////////////////////////////////////////////////
 
 model Ad {
@@ -275,9 +283,12 @@ model Ad {
   startDate   DateTime?
   endDate     DateTime?
 
+  totalBudget Float?
+  cpc         Float?
+  maxClicks   Int?
+
   views       Int @default(0)
   clicks      Int @default(0)
-
   completed   Boolean @default(false)
 
   createdAt   DateTime @default(now())
@@ -300,57 +311,5 @@ model NewsletterSubscriber {
   email     String   @unique
   createdAt DateTime @default(now())
 
-  @@index([createdAt])
-
   @@map("NewsletterSubscriber")
-}
-
-//////////////////////////////////////////////////////
-// ACTIVITY LOG
-//////////////////////////////////////////////////////
-
-model ActivityLog {
-
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-
-  action    String
-  entity    String?
-  entityId  String?
-
-  userId    String?  @db.ObjectId
-  user      User?    @relation(fields: [userId], references: [id])
-
-  createdAt DateTime @default(now())
-
-  @@index([createdAt])
-  @@index([userId])
-
-  @@map("ActivityLog")
-}
-
-//////////////////////////////////////////////////////
-// VISITOR CHAT
-//////////////////////////////////////////////////////
-
-model VisitorChat {
-
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-
-  name      String?
-  email     String?
-  message   String
-
-  ip        String?
-  userAgent String?
-
-  isRead    Boolean  @default(false)
-  status    String   @default("open")
-
-  createdAt DateTime @default(now())
-
-  @@index([createdAt])
-  @@index([isRead])
-  @@index([status])
-
-  @@map("VisitorChat")
 }
