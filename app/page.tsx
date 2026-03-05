@@ -19,46 +19,57 @@ export const metadata: Metadata = {
 
 export default async function Home() {
 
-  const articles = await prisma.article.findMany({
-    where: {
-      status: PostStatus.approved,
-      isDeleted: false,
-      isEditorial: false,
-      isAstrology: false,
-    },
-    include: { category: true },
-    orderBy: { createdAt: "desc" },
-    take: 30,
-  });
+  let articles: any[] = [];
+  let mostRead: any[] = [];
+  let editorials: any[] = [];
+  let horoscopes: any[] = [];
 
-  const mostRead = await prisma.article.findMany({
-    where: {
-      status: PostStatus.approved,
-      isDeleted: false,
-    },
-    orderBy: { views: "desc" },
-    take: 5,
-    include: { category: true },
-  });
+  try {
 
-  const editorials = await prisma.article.findMany({
-    where: {
-      status: PostStatus.approved,
-      isDeleted: false,
-      isEditorial: true,
-    },
-    orderBy: { createdAt: "desc" },
-    take: 6,
-  });
+    articles = await prisma.article.findMany({
+      where: {
+        status: PostStatus.approved,
+        isDeleted: false,
+        isEditorial: false,
+        isAstrology: false,
+      },
+      include: { category: true },
+      orderBy: { createdAt: "desc" },
+      take: 30,
+    });
 
-  const horoscopes = await prisma.article.findMany({
-    where: {
-      status: PostStatus.approved,
-      isDeleted: false,
-      isAstrology: true,
-    },
-    take: 12,
-  });
+    mostRead = await prisma.article.findMany({
+      where: {
+        status: PostStatus.approved,
+        isDeleted: false,
+      },
+      orderBy: { views: "desc" },
+      take: 5,
+      include: { category: true },
+    });
+
+    editorials = await prisma.article.findMany({
+      where: {
+        status: PostStatus.approved,
+        isDeleted: false,
+        isEditorial: true,
+      },
+      orderBy: { createdAt: "desc" },
+      take: 6,
+    });
+
+    horoscopes = await prisma.article.findMany({
+      where: {
+        status: PostStatus.approved,
+        isDeleted: false,
+        isAstrology: true,
+      },
+      take: 12,
+    });
+
+  } catch (error) {
+    console.error("Homepage DB error:", error);
+  }
 
   function cleanText(html: string) {
     if (!html) return "";
@@ -74,9 +85,9 @@ export default async function Home() {
     return `/${article.category.slug}/${article.slug}`;
   }
 
-  const hero = articles[0];
-  const featureGrid = articles.slice(1, 5);
-  const latest = articles.slice(5, 11);
+  const hero = articles?.[0] || null;
+  const featureGrid = articles?.slice(1, 5) || [];
+  const latest = articles?.slice(5, 11) || [];
 
   const politics = articles.filter((a) => a.category?.slug === "politics").slice(0, 4);
   const defence = articles.filter((a) => a.category?.slug === "defence").slice(0, 4);
@@ -87,17 +98,11 @@ export default async function Home() {
 
       <ChatWidget />
 
-      {/* TOP AD */}
-
       <div className="flex justify-center mb-6">
         <AdRenderer placement="homepage_top" />
       </div>
 
-      {/* FLASH BAR */}
-
       <FlashNewsBar />
-
-      {/* HERO */}
 
       {hero && (
         <section className="border-b pb-12">
@@ -129,17 +134,17 @@ export default async function Home() {
         </section>
       )}
 
-      {/* AFTER HERO AD */}
+      {!hero && (
+        <div className="text-center text-gray-500 py-20">
+          No news published yet.
+        </div>
+      )}
 
       <div className="flex justify-center my-10">
         <AdRenderer placement="homepage_after_hero" />
       </div>
 
-      {/* TRENDING */}
-
       <TrendingNews />
-
-      {/* FEATURE GRID */}
 
       <section className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 py-12 border-b">
 
@@ -170,17 +175,11 @@ export default async function Home() {
 
       </section>
 
-      {/* MID AD */}
-
       <div className="flex justify-center my-10">
         <AdRenderer placement="homepage_mid" />
       </div>
 
-      {/* LATEST + MOST READ */}
-
       <section className="grid lg:grid-cols-3 gap-12 py-12">
-
-        {/* Latest */}
 
         <div className="lg:col-span-2 space-y-8">
 
@@ -205,8 +204,6 @@ export default async function Home() {
           ))}
 
         </div>
-
-        {/* MOST READ */}
 
         <div>
 
@@ -240,19 +237,13 @@ export default async function Home() {
 
       </section>
 
-      {/* AFTER LIST AD */}
-
       <div className="flex justify-center my-10">
         <AdRenderer placement="homepage_after_list" />
       </div>
 
-      {/* CATEGORY BLOCKS */}
-
       <CategoryBlock title="Politics" articles={politics} />
       <CategoryBlock title="Defence" articles={defence} />
       <CategoryBlock title="Technology" articles={technology} />
-
-      {/* EDITORIAL */}
 
       <section className="py-12 border-t">
 
@@ -275,8 +266,6 @@ export default async function Home() {
         </div>
 
       </section>
-
-      {/* HOROSCOPE */}
 
       <section className="py-12 border-t">
 
@@ -317,8 +306,6 @@ export default async function Home() {
         )}
 
       </section>
-
-      {/* BOTTOM AD */}
 
       <div className="flex justify-center my-10">
         <AdRenderer placement="homepage_bottom" />
