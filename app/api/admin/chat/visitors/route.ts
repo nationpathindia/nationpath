@@ -1,18 +1,27 @@
-import { prisma } from "@/lib/prisma"
-import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
 
-export async function GET(){
+export const dynamic = "force-dynamic";
 
-const messages = await prisma.visitorChat.findMany({
+export async function GET() {
+  try {
+    const visitors = await prisma.visitorChat.findMany({
+      orderBy: {
+        createdAt: "desc"
+      }
+    });
 
-orderBy:{
-createdAt:"desc"
-},
+    return NextResponse.json({
+      success: true,
+      visitors
+    });
 
-take:50
+  } catch (error) {
+    console.error("Visitors chat error:", error);
 
-})
-
-return NextResponse.json(messages)
-
+    return NextResponse.json(
+      { error: "Failed to load visitors" },
+      { status: 500 }
+    );
+  }
 }
