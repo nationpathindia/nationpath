@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 
+export const dynamic = "force-dynamic"
+
 export async function GET(){
 
 try{
@@ -16,39 +18,52 @@ weekAgo.setDate(weekAgo.getDate()-7)
 const day24 = new Date()
 day24.setDate(day24.getDate()-1)
 
-/* ================= ARTICLES ================= */
+/* ================= CORE COUNTS ================= */
 
-const totalArticles = await prisma.article.count()
+const [
+totalArticles,
+pendingArticles,
+drafts,
+publishedToday,
+weekArticles,
+totalUsers,
+totalComments,
+activeAds
+] = await Promise.all([
 
-const pendingArticles = await prisma.article.count({
+prisma.article.count(),
+
+prisma.article.count({
 where:{ status:"pending" }
-})
+}),
 
-const drafts = await prisma.article.count({
+prisma.article.count({
 where:{ status:"draft" }
-})
+}),
 
-const publishedToday = await prisma.article.count({
+prisma.article.count({
 where:{
 status:"approved",
 createdAt:{ gte: today }
 }
-})
+}),
 
-const weekArticles = await prisma.article.count({
+prisma.article.count({
 where:{
 status:"approved",
 createdAt:{ gte: weekAgo }
 }
+}),
+
+prisma.user.count(),
+
+prisma.comment.count(),
+
+prisma.ad.count({
+where:{ status:"active" }
 })
 
-/* ================= USERS ================= */
-
-const totalUsers = await prisma.user.count()
-
-/* ================= COMMENTS ================= */
-
-const totalComments = await prisma.comment.count()
+])
 
 /* ================= VIEWS ================= */
 
@@ -59,10 +74,6 @@ _sum:{ views:true }
 const totalViews = totalViewsAgg._sum.views || 0
 
 /* ================= ADS ================= */
-
-const activeAds = await prisma.ad.count({
-where:{ status:"active" }
-})
 
 const adViewsAgg = await prisma.ad.aggregate({
 _sum:{ views:true }
